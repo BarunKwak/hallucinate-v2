@@ -38,6 +38,7 @@ export default {
         'glitch-bubble': 'glitchBubble 2s ease-in-out infinite',
         'glitch-button': 'glitchButton 3s ease-in-out infinite',
         'glitch-border': 'glitchBorder 1.5s ease-in-out infinite',
+        'glitch-block-jitter': 'glitchBlockJitter 4s ease-in-out infinite',
       },
       keyframes: {
         glitch: {
@@ -113,6 +114,12 @@ export default {
         glitchButton: {
           '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 10px rgba(157, 0, 255, 0.3)' },
           '50%': { transform: 'scale(1.01)', boxShadow: '0 0 20px rgba(255, 0, 255, 0.5)' },
+        },
+        glitchBlockJitter: {
+          '0%, 100%': { transform: 'translateX(0) translateY(0)', opacity: '0.2' },
+          '25%': { transform: 'translateX(1px) translateY(-1px)', opacity: '0.25' },
+          '50%': { transform: 'translateX(-1px) translateY(1px)', opacity: '0.2' },
+          '75%': { transform: 'translateX(0.5px) translateY(-0.5px)', opacity: '0.23' },
         },
         crtNoise: {
           '0%, 100%': { backgroundPosition: '0 0' },

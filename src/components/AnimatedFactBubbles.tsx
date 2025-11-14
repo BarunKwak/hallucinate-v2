@@ -55,12 +55,15 @@ const getRandomPosition = () => {
 const AnimatedFactBubbles = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
 
-  // Initialize with 4 bubbles
+  // Initialize with 6 bubbles (balanced: 3 true, 3 false)
   useEffect(() => {
     const initialBubbles: Bubble[] = [];
     const usedPairs = new Set<string>();
+    const startCount = 6;
+    const trueCount = Math.floor(startCount / 2);
 
-    for (let i = 0; i < 4; i++) {
+    // Create balanced true/false split
+    for (let i = 0; i < startCount; i++) {
       let pair: FactPair;
       let attempts = 0;
       do {
@@ -69,7 +72,7 @@ const AnimatedFactBubbles = () => {
       } while (usedPairs.has(pair.id) && attempts < 10);
 
       usedPairs.add(pair.id);
-      const isTrue = Math.random() > 0.5;
+      const isTrue = i < trueCount; // First half are true, second half are false
       const pos = getRandomPosition();
       const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
 
@@ -86,15 +89,24 @@ const AnimatedFactBubbles = () => {
       });
     }
 
+    // Shuffle array to mix true/false positions
+    for (let i = initialBubbles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [initialBubbles[i], initialBubbles[j]] = [initialBubbles[j], initialBubbles[i]];
+    }
+
     setBubbles(initialBubbles);
   }, []);
 
-  // Respawn system - keep 6 bubbles max, no duplicates
+  // Respawn system - keep 8-10 bubbles max with balanced true/false ratio
   useEffect(() => {
     const interval = setInterval(() => {
       setBubbles((prev) => {
-        if (prev.length >= 6) return prev;
-        if (Math.random() > 0.65) return prev;
+        const maxBubbles = 10;
+        const minBubbles = 6;
+        
+        if (prev.length >= maxBubbles) return prev;
+        if (prev.length >= minBubbles && Math.random() > 0.65) return prev;
 
         // Get used pairs
         const usedPairs = new Set(prev.map((b) => b.pairId));
@@ -103,8 +115,21 @@ const AnimatedFactBubbles = () => {
         const availablePairs = FACT_PAIRS.filter((p) => !usedPairs.has(p.id));
         if (availablePairs.length === 0) return prev;
 
+        // Calculate balance - decide what type to spawn based on current ratio
+        const trueCount = prev.filter((b) => b.isTrue).length;
+        const falseCount = prev.filter((b) => !b.isTrue).length;
+        
+        // If more true bubbles, spawn false; if more false, spawn true; if equal, random
+        let isTrue: boolean;
+        if (trueCount > falseCount + 1) {
+          isTrue = false; // Spawn false to balance
+        } else if (falseCount > trueCount + 1) {
+          isTrue = true; // Spawn true to balance
+        } else {
+          isTrue = Math.random() > 0.5; // Random if balanced
+        }
+
         const pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
-        const isTrue = Math.random() > 0.5;
         const pos = getRandomPosition();
         const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
 

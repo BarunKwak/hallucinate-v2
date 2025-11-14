@@ -3,6 +3,7 @@
 
 import GlitchOverlay from './GlitchOverlay';
 import PixelStreaks from './PixelStreaks';
+import GlitchBlocks from './GlitchBlocks';
 import AnimatedFactBubbles from './AnimatedFactBubbles';
 
 interface WelcomeScreenProps {
@@ -24,13 +25,16 @@ const WelcomeScreen = ({ onStartGame }: WelcomeScreenProps) => {
       {/* LAYER 2: Glitch overlay (slices and crack beams) */}
       <GlitchOverlay />
 
-      {/* LAYER 3: Pixel streaks (sliding horizontally) */}
+      {/* LAYER 3: Glitch blocks (colored rectangles for CRT TV vibe) */}
+      <GlitchBlocks />
+
+      {/* LAYER 4: Pixel streaks (sliding horizontally) */}
       <PixelStreaks />
 
-      {/* LAYER 4: Floating bubble nebula (behind title) */}
+      {/* LAYER 5: Floating bubble nebula (behind title) */}
       <AnimatedFactBubbles />
 
-      {/* LAYER 5: Centered title + subhead + button cluster */}
+      {/* LAYER 6: Centered title + subhead + button cluster */}
       <div className="relative z-20 h-full flex flex-col items-center justify-center px-6">
         {/* Cosmic radial glow behind title */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-radial from-purple-600/30 via-purple-800/10 to-transparent blur-3xl pointer-events-none"></div>
