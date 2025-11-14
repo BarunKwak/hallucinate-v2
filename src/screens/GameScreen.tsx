@@ -5,6 +5,41 @@ import GlitchOverlay from '../components/GlitchOverlay';
 import PixelStreaks from '../components/PixelStreaks';
 import GlitchBlocks from '../components/GlitchBlocks';
 
+// Fixed-length scrambled glyph sets (always 6 chars, no length leaking)
+const GLYPH_SETS = [
+  '▓≡¥✶Яø',
+  '▮▮▮▮▮▮',
+  '█▒░▓█▒',
+  '◊◊◊◊◊◊',
+  '≡≡▮▮≡▮',
+  '✶Я░█◊▓',
+];
+
+// Generate a fixed 6-character scrambled placeholder
+const getScrambledLabel = (): string => {
+  return GLYPH_SETS[Math.floor(Math.random() * GLYPH_SETS.length)];
+};
+
+// Animated scrambled text component (6 chars, fixed)
+const ScrambledText = ({ seed }: { seed: number }) => {
+  const [scrambled, setScrambled] = useState<string>(getScrambledLabel());
+  
+  useEffect(() => {
+    // Occasionally re-scramble for visual effect
+    const interval = setInterval(() => {
+      setScrambled(getScrambledLabel());
+    }, 600);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <span className="inline-block font-pixel text-yellow-400 tracking-widest animate-pulse">
+      {scrambled}
+    </span>
+  );
+};
+
 const GameScreen = () => {
   const [gameState, setGameState] = useState<GameState>({
     isActive: true,
@@ -20,6 +55,7 @@ const GameScreen = () => {
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [showingRedemption, setShowingRedemption] = useState<boolean>(false);
   const [selectedRedemption, setSelectedRedemption] = useState<string | null>(null);
+  const [hasGuessedPersona, setHasGuessedPersona] = useState<boolean>(false);
 
   // Initialize first round on mount
   useEffect(() => {
@@ -65,6 +101,7 @@ const GameScreen = () => {
           }));
           setMessage('');
           setIsAnswered(false);
+          setHasGuessedPersona(false); // Reset for new round
         }, 2000);
       }
     } else {
@@ -78,6 +115,7 @@ const GameScreen = () => {
     if (!gameState.currentRound) return;
 
     setSelectedRedemption(personaId);
+    setHasGuessedPersona(true); // Reveal the AI name on first persona guess
     const result = checkRedemption(gameState.currentRound, personaId);
     setMessage(result.message);
 
@@ -109,6 +147,7 @@ const GameScreen = () => {
           setIsAnswered(false);
           setShowingRedemption(false);
           setSelectedRedemption(null);
+          setHasGuessedPersona(false); // Reset for new round
         }
       }, 2000);
     } else {
@@ -179,7 +218,7 @@ const GameScreen = () => {
             GAME OVER
           </h1>
           <p className="font-pixel text-sm text-center text-red-300 mb-8 max-w-xs">
-            The AI has outsmarted you.
+            The AIs have outsmarted you.
           </p>
           <p className="font-pixel text-xs text-center text-yellow-400 mb-12">
             You made it to round {gameState.roundNumber} of 4.
@@ -203,7 +242,7 @@ const GameScreen = () => {
       <div
         className="absolute inset-0 opacity-5 animate-crt-noise pointer-events-none z-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.3'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='  http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.3'/%3E%3C/svg%3E")`,
           backgroundSize: '200px 200px',
         }}
       ></div>
@@ -224,11 +263,21 @@ const GameScreen = () => {
         {/* AI persona name + vibe */}
         <div className="mb-6">
           <p className="font-pixel text-xs text-gray-400 text-center tracking-wider">
-            Hosted by
+            AI Persona
           </p>
-          <p className={`font-pixel text-2xl text-center ${gameState.currentRound.persona.color.text}`}>
-            {gameState.currentRound.persona.name}
-          </p>
+          {!hasGuessedPersona ? (
+            // Before persona guess: show fixed 6-char scrambled glyphs
+            <p className="font-pixel text-2xl text-center h-8 flex items-center justify-center">
+              <ScrambledText seed={gameState.roundNumber} />
+            </p>
+          ) : (
+            // After persona guess: reveal real name with glitch animation
+            <p 
+              className={`font-pixel text-2xl text-center ${gameState.currentRound.persona.color.text} animate-glitch-logo transition-all duration-500`}
+            >
+              {gameState.currentRound.persona.name}
+            </p>
+          )}
         </div>
 
         {/* Fact card */}

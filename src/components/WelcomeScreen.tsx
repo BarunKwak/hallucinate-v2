@@ -41,15 +41,15 @@ const WelcomeScreen = ({ onStartGame }: WelcomeScreenProps) => {
         
         {/* Title */}
         <div className="relative mb-2">
-          <h1 className="font-pixel text-4xl text-center text-white tracking-wider animate-glitch-logo drop-shadow-[0_0_25px_rgba(168,85,247,0.6)]">
+          <h1 className="font-pixel text-5xl text-center text-white tracking-wider animate-glitch-logo drop-shadow-[0_0_25px_rgba(168,85,247,0.6)]">
             HALLUCINATE
           </h1>
         </div>
 
         {/* Subheadline */}
         <div className="relative mb-8">
-          <p className="font-pixel text-sm text-center text-cyan-400/80 tracking-widest">
-            A game where AIs hallucinate on purpose
+          <p className="font-pixel text-md text-center text-cyan-400/80 tracking-widest">
+            An AI bluffing game
           </p>
         </div>
 
