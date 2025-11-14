@@ -44,7 +44,7 @@ const WelcomeScreen = ({ onStartGame }: WelcomeScreenProps) => {
 
         {/* Subheadline */}
         <div className="relative mb-8">
-          <p className="font-pixel text-xs text-center text-cyan-400/80 tracking-widest">
+          <p className="font-pixel text-sm text-center text-cyan-400/80 tracking-widest">
             A game where AIs hallucinate on purpose
           </p>
         </div>
@@ -52,7 +52,7 @@ const WelcomeScreen = ({ onStartGame }: WelcomeScreenProps) => {
         {/* START GAME button */}
         <button
           onClick={onStartGame}
-          className="relative font-pixel text-lg px-8 py-4 bg-gradient-to-r from-y2k-purple via-y2k-pink to-y2k-cyan text-white rounded-full shadow-lg hover:shadow-2xl transition-all active:scale-95 animate-glitch-button hover:from-y2k-magenta hover:via-y2k-purple hover:to-y2k-blue"
+          className="relative font-pixel text-xl px-8 py-4 bg-gradient-to-r from-y2k-purple via-y2k-pink to-y2k-cyan text-white rounded-full shadow-lg hover:shadow-2xl transition-all active:scale-95 animate-glitch-button hover:from-y2k-magenta hover:via-y2k-purple hover:to-y2k-blue"
         >
           START GAME
         </button>

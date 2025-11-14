@@ -41,18 +41,13 @@ const DIRECTIONS = [
   'animate-float-gentle'
 ];
 
-// Helper to get random position avoiding center cluster (title/button area)
+// Helper to get random position - favor center width, start from bottom for upward drift
 const getRandomPosition = () => {
-  let x = Math.random() * 80 + 10;
-  let y = Math.random() * 90 + 5;
-
-  if (y > 35 && y < 65) {
-    if (Math.random() > 0.5) {
-      x = Math.random() * 25;
-    } else {
-      x = Math.random() * 25 + 75;
-    }
-  }
+  // Favor center 60-70% of width (roughly 15-85%)
+  const x = Math.random() * 70 + 15; // 15-85%
+  
+  // Spawn from bottom half so bubbles float upward (50-100%)
+  const y = Math.random() * 50 + 50; // 50-100%
 
   return { x, y };
 };
