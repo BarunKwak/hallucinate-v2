@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import CosmicBackground from './components/CosmicBackground';
 import DeviceFrame from './components/DeviceFrame';
 import WelcomeScreen from './components/WelcomeScreen';
+import GameScreen from './screens/GameScreen';
 
 function App() {
+  const [screen, setScreen] = useState<'welcome' | 'game'>('welcome');
+
   const handleStartGame = () => {
-    // TODO: Transition to game screen
-    console.log('Starting game...');
+    setScreen('game');
   };
 
   return (
@@ -15,8 +18,11 @@ function App() {
       
       {/* Device Frame with all game content inside */}
       <DeviceFrame>
-        {/* Welcome screen with centered title, button, and floating bubbles */}
-        <WelcomeScreen onStartGame={handleStartGame} />
+        {screen === 'welcome' ? (
+          <WelcomeScreen onStartGame={handleStartGame} />
+        ) : (
+          <GameScreen />
+        )}
       </DeviceFrame>
     </div>
   );
