@@ -1,36 +1,52 @@
-// Floating fact bubbles with organic drifting and no duplicates
-// Max 6 bubbles on screen, simple click-to-toggle between true/false
+// Floating fact bubbles - always exactly 8 on screen
+// Immediate respawn when bubble exits, no duplicates, balanced true/false
 
 import { useState, useEffect } from 'react';
 
-interface FactPair {
+interface Fact {
   id: string;
-  trueText: string;
-  falseText: string;
+  text: string;
+  isTrue: boolean;
 }
 
 interface Bubble {
   id: string;
-  pairId: string;
+  factId: string;
   text: string;
   isTrue: boolean;
-  startX: number; // % position
-  startY: number; // % position
-  direction: string; // animation class
-  duration: number; // seconds
-  delay: number; // seconds
+  startX: number;
+  startY: number;
+  direction: string;
+  duration: number;
+  delay: number;
 }
 
-// Paired facts (true variant + false variant)
-const FACT_PAIRS: FactPair[] = [
-  { id: 'p1', trueText: 'Octopuses have three hearts', falseText: 'Octopuses have green blood that tastes like electricity' },
-  { id: 'p2', trueText: 'Honey never spoils', falseText: 'Honey was engineered by ancient aliens' },
-  { id: 'p3', trueText: 'Bananas are naturally radioactive', falseText: 'Bananas can predict the weather if held upside down' },
-  { id: 'p4', trueText: 'A day on Venus is longer than its year', falseText: 'Venus is actually a giant mirror to Earth' },
-  { id: 'p5', trueText: 'Sharks existed before trees', falseText: 'Sharks invented surfing 500 years ago' },
-  { id: 'p6', trueText: 'Wombat poop is cube-shaped', falseText: 'Wombats are the original architects of geometry' },
-  { id: 'p7', trueText: 'Butterflies taste with their feet', falseText: 'Butterflies can remember human faces for two days' },
-  { id: 'p8', trueText: 'Honey bees waggle dance to share location', falseText: 'Your phone loses battery faster near the ocean' },
+// TRUE-BUT-SOUND-FAKE facts
+const TRUE_FACTS: Fact[] = [
+  { id: 't1', text: 'Octopuses taste with their arms', isTrue: true },
+  { id: 't2', text: 'A day on Venus is longer than its year', isTrue: true },
+  { id: 't3', text: 'Bananas are naturally radioactive', isTrue: true },
+  { id: 't4', text: 'Wombats poop perfect cubes', isTrue: true },
+  { id: 't5', text: "Butterflies can 'smell' with their feet", isTrue: true },
+  { id: 't6', text: 'Honey found in ancient tombs is still edible', isTrue: true },
+  { id: 't7', text: 'Sharks existed before trees', isTrue: true },
+  { id: 't8', text: 'The Eiffel Tower grows in summer heat', isTrue: true },
+  { id: 't9', text: 'Some turtles can breathe through their butts', isTrue: true },
+  { id: 't10', text: 'The moon is slowly drifting away from Earth', isTrue: true },
+];
+
+// FALSE-BUT-SOUNDS-TRUE facts
+const FALSE_FACTS: Fact[] = [
+  { id: 'f1', text: 'Clouds weigh less on colder days', isTrue: false },
+  { id: 'f2', text: 'Your phone loses battery faster near the ocean', isTrue: false },
+  { id: 'f3', text: "Trees emit chemical 'warning signals' through the air", isTrue: false },
+  { id: 'f4', text: 'Human bones continue to grow into your thirties', isTrue: false },
+  { id: 'f5', text: 'Cats can recognize their names but choose to ignore them', isTrue: false },
+  { id: 'f6', text: 'The moon is about 500,000 miles away', isTrue: false },
+  { id: 'f7', text: 'Most people blink at the same rate while reading', isTrue: false },
+  { id: 'f8', text: 'Goldfish can recognize human laughter', isTrue: false },
+  { id: 'f9', text: 'Butterflies remember faces for several days', isTrue: false },
+  { id: 'f10', text: 'Owls tilt their heads to triangulate color differences', isTrue: false },
 ];
 
 // Animation directions
@@ -41,46 +57,42 @@ const DIRECTIONS = [
   'animate-float-gentle'
 ];
 
-// Helper to get random position - favor center width, start from bottom for upward drift
-const getRandomPosition = () => {
-  // Favor center 60-70% of width (roughly 15-85%)
-  const x = Math.random() * 70 + 15; // 15-85%
-  
-  // Spawn from bottom half so bubbles float upward (50-100%)
-  const y = Math.random() * 50 + 50; // 50-100%
+// Define vertical lanes to prevent overlap (8 lanes, one per bubble)
+const LANES = [10, 20, 30, 40, 50, 60, 70, 80]; // x positions as percentage
 
+// Helper to get position with lane assignment to prevent overlap
+const getRandomPosition = (laneIndex: number) => {
+  const x = LANES[laneIndex % LANES.length]; // Assign to a specific lane
+  const y = Math.random() * 30 + 60; // 60-90% (more spread vertically)
   return { x, y };
 };
 
 const AnimatedFactBubbles = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
 
-  // Initialize with 6 bubbles (balanced: 3 true, 3 false)
+  // Initialize with exactly 8 bubbles (4 true, 4 false)
   useEffect(() => {
     const initialBubbles: Bubble[] = [];
-    const usedPairs = new Set<string>();
-    const startCount = 6;
-    const trueCount = Math.floor(startCount / 2);
+    const used = new Set<string>();
 
-    // Create balanced true/false split
-    for (let i = 0; i < startCount; i++) {
-      let pair: FactPair;
+    // Create 4 true bubbles in lanes 0-3
+    for (let i = 0; i < 4; i++) {
+      let fact: Fact;
       let attempts = 0;
       do {
-        pair = FACT_PAIRS[Math.floor(Math.random() * FACT_PAIRS.length)];
+        fact = TRUE_FACTS[Math.floor(Math.random() * TRUE_FACTS.length)];
         attempts++;
-      } while (usedPairs.has(pair.id) && attempts < 10);
+      } while (used.has(fact.id) && attempts < 10);
 
-      usedPairs.add(pair.id);
-      const isTrue = i < trueCount; // First half are true, second half are false
-      const pos = getRandomPosition();
+      used.add(fact.id);
+      const pos = getRandomPosition(i);
       const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
 
       initialBubbles.push({
         id: `bubble-${Date.now()}-${i}`,
-        pairId: pair.id,
-        text: isTrue ? pair.trueText : pair.falseText,
-        isTrue,
+        factId: fact.id,
+        text: fact.text,
+        isTrue: true,
         startX: pos.x,
         startY: pos.y,
         direction,
@@ -89,7 +101,33 @@ const AnimatedFactBubbles = () => {
       });
     }
 
-    // Shuffle array to mix true/false positions
+    // Create 4 false bubbles in lanes 4-7
+    for (let i = 4; i < 8; i++) {
+      let fact: Fact;
+      let attempts = 0;
+      do {
+        fact = FALSE_FACTS[Math.floor(Math.random() * FALSE_FACTS.length)];
+        attempts++;
+      } while (used.has(fact.id) && attempts < 10);
+
+      used.add(fact.id);
+      const pos = getRandomPosition(i);
+      const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+
+      initialBubbles.push({
+        id: `bubble-${Date.now()}-${i}`,
+        factId: fact.id,
+        text: fact.text,
+        isTrue: false,
+        startX: pos.x,
+        startY: pos.y,
+        direction,
+        duration: Math.random() * 10 + 25,
+        delay: Math.random() * 2,
+      });
+    }
+
+    // Shuffle to mix true/false positions
     for (let i = initialBubbles.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [initialBubbles[i], initialBubbles[j]] = [initialBubbles[j], initialBubbles[i]];
@@ -98,57 +136,79 @@ const AnimatedFactBubbles = () => {
     setBubbles(initialBubbles);
   }, []);
 
-  // Respawn system - keep 8-10 bubbles max with balanced true/false ratio
+  // Spawn a new bubble to maintain count
+  const spawnBubble = (currentBubbles: Bubble[], laneIndex: number) => {
+    const currentUsedIds = new Set(currentBubbles.map((b) => b.factId));
+    
+    // Decide if we should spawn true or false based on current ratio
+    const trueCount = currentBubbles.filter((b) => b.isTrue).length;
+    const falseCount = currentBubbles.filter((b) => !b.isTrue).length;
+    
+    let isTrue: boolean;
+    if (trueCount > falseCount + 1) {
+      isTrue = false; // Spawn false to balance
+    } else if (falseCount > trueCount + 1) {
+      isTrue = true; // Spawn true to balance
+    } else {
+      isTrue = Math.random() > 0.5; // Random if balanced
+    }
+
+    // Get available facts
+    const factPool = isTrue ? TRUE_FACTS : FALSE_FACTS;
+    const availableFacts = factPool.filter((f) => !currentUsedIds.has(f.id));
+    
+    const fact = availableFacts.length > 0 
+      ? availableFacts[Math.floor(Math.random() * availableFacts.length)]
+      : factPool[Math.floor(Math.random() * factPool.length)];
+
+    const pos = getRandomPosition(laneIndex);
+    const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+
+    return {
+      id: `bubble-${Date.now()}-${Math.random()}`,
+      factId: fact.id,
+      text: fact.text,
+      isTrue,
+      startX: pos.x,
+      startY: pos.y,
+      direction,
+      duration: Math.random() * 10 + 25,
+      delay: 0,
+    };
+  };
+
+  // Immediate respawn when bubble exits
+  const handleAnimationEnd = (bubbleId: string) => {
+    setBubbles((prev) => {
+      const remaining = prev.filter((b) => b.id !== bubbleId);
+      
+      if (remaining.length >= 8) return remaining;
+
+      // Spawn new bubble to replace the exited one
+      const laneIndex = remaining.length; // Use current count as lane index
+      const newBubble = spawnBubble(remaining, laneIndex);
+      
+      return [...remaining, newBubble];
+    });
+  };
+
+  // Background effect to ensure we always have 8 bubbles
   useEffect(() => {
     const interval = setInterval(() => {
       setBubbles((prev) => {
-        const maxBubbles = 10;
-        const minBubbles = 6;
-        
-        if (prev.length >= maxBubbles) return prev;
-        if (prev.length >= minBubbles && Math.random() > 0.65) return prev;
+        if (prev.length >= 8) return prev;
 
-        // Get used pairs
-        const usedPairs = new Set(prev.map((b) => b.pairId));
-        
-        // Find available pairs
-        const availablePairs = FACT_PAIRS.filter((p) => !usedPairs.has(p.id));
-        if (availablePairs.length === 0) return prev;
-
-        // Calculate balance - decide what type to spawn based on current ratio
-        const trueCount = prev.filter((b) => b.isTrue).length;
-        const falseCount = prev.filter((b) => !b.isTrue).length;
-        
-        // If more true bubbles, spawn false; if more false, spawn true; if equal, random
-        let isTrue: boolean;
-        if (trueCount > falseCount + 1) {
-          isTrue = false; // Spawn false to balance
-        } else if (falseCount > trueCount + 1) {
-          isTrue = true; // Spawn true to balance
-        } else {
-          isTrue = Math.random() > 0.5; // Random if balanced
+        // We're below 8, spawn more bubbles immediately
+        const newBubbles = [...prev];
+        while (newBubbles.length < 8) {
+          const laneIndex = newBubbles.length;
+          const newBubble = spawnBubble(newBubbles, laneIndex);
+          newBubbles.push(newBubble);
         }
 
-        const pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
-        const pos = getRandomPosition();
-        const direction = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
-
-        return [
-          ...prev,
-          {
-            id: `bubble-${Date.now()}`,
-            pairId: pair.id,
-            text: isTrue ? pair.trueText : pair.falseText,
-            isTrue,
-            startX: pos.x,
-            startY: pos.y,
-            direction,
-            duration: Math.random() * 10 + 25,
-            delay: 0,
-          },
-        ];
+        return newBubbles;
       });
-    }, 3000);
+    }, 500); // Check every 500ms to quickly fix any gaps
 
     return () => clearInterval(interval);
   }, []);
@@ -158,24 +218,18 @@ const AnimatedFactBubbles = () => {
     setBubbles((prev) =>
       prev.map((bubble) => {
         if (bubble.id === bubbleId) {
-          const pair = FACT_PAIRS.find((p) => p.id === bubble.pairId);
-          if (!pair) return bubble;
-
-          const newIsTrue = !bubble.isTrue;
+          const pool = bubble.isTrue ? FALSE_FACTS : TRUE_FACTS;
+          const newFact = pool.find((f) => f.id !== bubble.factId) || pool[0];
           return {
             ...bubble,
-            isTrue: newIsTrue,
-            text: newIsTrue ? pair.trueText : pair.falseText,
+            isTrue: !bubble.isTrue,
+            factId: newFact.id,
+            text: newFact.text,
           };
         }
         return bubble;
       })
     );
-  };
-
-  // Remove bubble after animation completes
-  const handleAnimationEnd = (bubbleId: string) => {
-    setBubbles((prev) => prev.filter((b) => b.id !== bubbleId));
   };
 
   return (
