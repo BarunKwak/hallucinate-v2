@@ -1,17 +1,19 @@
 import type { Round } from './types';
-import { getRandomFactPair } from './facts';
+import { TRUE_FACTS, FALSE_FACTS } from '../components/AnimatedFactBubbles';
 import { getRandomPersona, getPersonaById } from '../ai/personas';
 import type { AIPersona } from '../ai/personas';
 
 /**
  * Generates a new round with:
  * - A random AI persona
- * - A random fact (true or false)
+ * - A random fact (true or false) from the bubble fact pool
+ * - Ensures no fact repetition within a single game (4 rounds)
  * - The fact rewritten in the persona's style
  */
 export function generateRound(
   roundNumber: number,
-  usedPersonas?: Set<string>
+  usedPersonas?: Set<string>,
+  usedFactIds?: Set<string>
 ): Round {
   // Pick a persona (prefer one not used yet, but allow repeats if all are used)
   let persona: AIPersona;
@@ -26,23 +28,28 @@ export function generateRound(
     persona = getRandomPersona();
   }
 
-  // Pick a random fact (don't filter by used, just pick any)
-  const factPair = getRandomFactPair();
-  if (!factPair) {
-    throw new Error('No facts available');
+  // Randomly choose if this round will present a true or false fact
+  const isTrue = Math.random() > 0.5;
+  
+  // Pick from the appropriate fact pool, avoiding already used facts
+  const factPool = isTrue ? TRUE_FACTS : FALSE_FACTS;
+  const availableFacts = usedFactIds
+    ? factPool.filter(f => !usedFactIds.has(f.id))
+    : factPool;
+
+  if (availableFacts.length === 0) {
+    throw new Error(`No available ${isTrue ? 'true' : 'false'} facts for round ${roundNumber}`);
   }
 
-  // Randomly choose if this round will present the true or false fact
-  const isTrue = Math.random() > 0.5;
-  const originalFact = isTrue ? factPair.trueFact : factPair.falseFact;
+  const fact = availableFacts[Math.floor(Math.random() * availableFacts.length)];
 
   // Rewrite it in the persona's style
-  const rewrittenFact = persona.rewriteStyle(originalFact);
+  const rewrittenFact = persona.rewriteStyle(fact.text);
 
   return {
     roundNumber,
     persona,
-    originalFact,
+    originalFact: fact.text,
     rewrittenFact,
     correctAnswer: isTrue,
     userGuess: undefined,

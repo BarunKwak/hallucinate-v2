@@ -29,6 +29,7 @@ export interface GameState {
   isGameOver: boolean;
   result?: 'win' | 'loss'; // Final result
   usedPersonas: Set<string>; // Track which AI personas have already appeared
+  usedFactIds: Set<string>; // Track which facts have been used in this game
 }
 
 // Result of a player's guess

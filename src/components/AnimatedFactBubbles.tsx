@@ -22,7 +22,7 @@ interface Bubble {
 }
 
 // TRUE-BUT-SOUND-FAKE facts
-const TRUE_FACTS: Fact[] = [
+export const TRUE_FACTS: Fact[] = [
   { id: 't1', text: 'Octopuses taste with their arms', isTrue: true },
   { id: 't2', text: 'A day on Venus is longer than its year', isTrue: true },
   { id: 't3', text: 'Bananas are naturally radioactive', isTrue: true },
@@ -36,7 +36,7 @@ const TRUE_FACTS: Fact[] = [
 ];
 
 // FALSE-BUT-SOUNDS-TRUE facts
-const FALSE_FACTS: Fact[] = [
+export const FALSE_FACTS: Fact[] = [
   { id: 'f1', text: 'Clouds weigh less on colder days', isTrue: false },
   { id: 'f2', text: 'Your phone loses battery faster near the ocean', isTrue: false },
   { id: 'f3', text: "Trees emit chemical 'warning signals' through the air", isTrue: false },

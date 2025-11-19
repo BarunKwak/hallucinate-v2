@@ -21,7 +21,7 @@ const getScrambledLabel = (): string => {
 };
 
 // Animated scrambled text component (6 chars, fixed)
-const ScrambledText = ({ seed }: { seed: number }) => {
+const ScrambledText = () => {
   const [scrambled, setScrambled] = useState<string>(getScrambledLabel());
   
   useEffect(() => {
@@ -49,6 +49,7 @@ const GameScreen = () => {
     wrongGuesses: 0,
     isGameOver: false,
     usedPersonas: new Set(),
+    usedFactIds: new Set(),
   });
 
   const [message, setMessage] = useState<string>('');
@@ -59,10 +60,11 @@ const GameScreen = () => {
 
   // Initialize first round on mount
   useEffect(() => {
-    const newRound = generateRound(1, gameState.usedPersonas);
+    const newRound = generateRound(1, gameState.usedPersonas, gameState.usedFactIds);
     setGameState((prev) => ({
       ...prev,
       currentRound: newRound,
+      usedFactIds: new Set([...prev.usedFactIds, newRound.originalFact]),
     }));
   }, []);
 
@@ -91,13 +93,17 @@ const GameScreen = () => {
           const newUsedPersonas = new Set(gameState.usedPersonas);
           newUsedPersonas.add(gameState.currentRound!.persona.id);
 
-          const nextRound = generateRound(nextRoundNum, newUsedPersonas);
+          const nextRound = generateRound(nextRoundNum, newUsedPersonas, gameState.usedFactIds);
+          const newUsedFactIds = new Set(gameState.usedFactIds);
+          newUsedFactIds.add(nextRound.originalFact);
+
           setGameState((prev) => ({
             ...prev,
             currentRound: nextRound,
             roundNumber: nextRoundNum,
             score: prev.score + 1,
             usedPersonas: newUsedPersonas,
+            usedFactIds: newUsedFactIds,
           }));
           setMessage('');
           setIsAnswered(false);
@@ -136,12 +142,16 @@ const GameScreen = () => {
           const newUsedPersonas = new Set(gameState.usedPersonas);
           newUsedPersonas.add(gameState.currentRound!.persona.id);
 
-          const nextRound = generateRound(nextRoundNum, newUsedPersonas);
+          const nextRound = generateRound(nextRoundNum, newUsedPersonas, gameState.usedFactIds);
+          const newUsedFactIds = new Set(gameState.usedFactIds);
+          newUsedFactIds.add(nextRound.originalFact);
+
           setGameState((prev) => ({
             ...prev,
             currentRound: nextRound,
             roundNumber: nextRoundNum,
             usedPersonas: newUsedPersonas,
+            usedFactIds: newUsedFactIds,
           }));
           setMessage('');
           setIsAnswered(false);
@@ -268,7 +278,7 @@ const GameScreen = () => {
           {!hasGuessedPersona ? (
             // Before persona guess: show fixed 6-char scrambled glyphs
             <p className="font-pixel text-2xl text-center h-8 flex items-center justify-center">
-              <ScrambledText seed={gameState.roundNumber} />
+              <ScrambledText />
             </p>
           ) : (
             // After persona guess: reveal real name with glitch animation
